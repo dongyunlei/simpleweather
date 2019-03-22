@@ -183,7 +183,7 @@ public class WeatherActivity extends AppCompatActivity {
         sportText.setText("运动指数：" + weather.getLifestyle().get(3).getBrf() + "\n\n" + weather.getLifestyle().get(3).getTxt());
 
         weatherLayout.setVisibility(View.VISIBLE);
-        
+
         //开启后台自动更新服务
         Intent intent = new Intent(this, AutoUpdateService.class);
         startService(intent);
