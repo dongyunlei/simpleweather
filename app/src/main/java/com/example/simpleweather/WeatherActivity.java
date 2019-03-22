@@ -1,5 +1,6 @@
 package com.example.simpleweather;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -22,6 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.example.simpleweather.service.AutoUpdateService;
 import com.google.gson.Gson;
 
 import java.util.List;
@@ -80,8 +82,10 @@ public class WeatherActivity extends AppCompatActivity {
         drawerLayout = findViewById(R.id.drawer_layout);
         navButton = findViewById(R.id.nav_button);
 
+        //加载每日一图
         Glide.with(this).load("https://open.saintic.com/api/bingPic/").into(bingPic);
 
+        //根据是否缓存加载界面
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherJson = preferences.getString("weather", null);
         if (weatherJson == null){
@@ -94,6 +98,7 @@ public class WeatherActivity extends AppCompatActivity {
             showWeatherInfo(weather);
         }
 
+        //下拉刷新
         swipeRefreshLayout.setColorSchemeResources(R.color.colorPrimary);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
@@ -102,6 +107,7 @@ public class WeatherActivity extends AppCompatActivity {
             }
         });
 
+        //切换城市
         navButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -123,10 +129,14 @@ public class WeatherActivity extends AppCompatActivity {
             public void onSuccess(List<Weather> list) {
                 if (list.size() > 0){
                     weather = list.get(0);
-                    SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
-                    edit.putString("weather", new Gson().toJson(weather));
-                    edit.apply();
-                    showWeatherInfo(weather);
+                    if (weather != null && "ok".equals(weather.getStatus())){
+                        SharedPreferences.Editor edit = PreferenceManager.getDefaultSharedPreferences(getContext()).edit();
+                        edit.putString("weather", new Gson().toJson(weather));
+                        edit.apply();
+                        showWeatherInfo(weather);
+                    } else {
+                        Toast.makeText(getContext(), "获取天气信息失败", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
                     Toast.makeText(getContext(), "获取天气信息失败", Toast.LENGTH_SHORT).show();
                 }
@@ -137,7 +147,7 @@ public class WeatherActivity extends AppCompatActivity {
 
     private void showWeatherInfo(Weather weather) {
         String cityName = weather.getBasic().getLocation();
-        String updateTime = weather.getUpdate().getLoc().split(" ")[0];
+        String updateTime = weather.getUpdate().getLoc().split(" ")[1];
         String degree = weather.getNow().getTmp() + "℃";
         String weatherInfo = weather.getNow().getCond_txt();
 
@@ -173,5 +183,9 @@ public class WeatherActivity extends AppCompatActivity {
         sportText.setText("运动指数：" + weather.getLifestyle().get(3).getBrf() + "\n\n" + weather.getLifestyle().get(3).getTxt());
 
         weatherLayout.setVisibility(View.VISIBLE);
+        
+        //开启后台自动更新服务
+        Intent intent = new Intent(this, AutoUpdateService.class);
+        startService(intent);
     }
 }
