@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +18,12 @@ import android.widget.Toast;
 
 import com.example.simpleweather.MainActivity;
 import com.example.simpleweather.R;
-import com.example.simpleweather.WeatherActicity;
+import com.example.simpleweather.WeatherActivity;
 import com.example.simpleweather.db.City;
 import com.example.simpleweather.db.County;
 import com.example.simpleweather.db.Province;
 import com.example.simpleweather.util.HttpUtil;
 import com.example.simpleweather.util.Utility;
-import com.google.gson.Gson;
 
 import org.litepal.LitePal;
 
@@ -33,14 +31,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import interfaces.heweather.com.interfacesmodule.bean.Lang;
-import interfaces.heweather.com.interfacesmodule.bean.Unit;
-import interfaces.heweather.com.interfacesmodule.bean.air.now.AirNow;
-import interfaces.heweather.com.interfacesmodule.bean.search.Search;
-import interfaces.heweather.com.interfacesmodule.bean.weather.Weather;
-import interfaces.heweather.com.interfacesmodule.bean.weather.forecast.Forecast;
-import interfaces.heweather.com.interfacesmodule.bean.weather.now.Now;
-import interfaces.heweather.com.interfacesmodule.view.HeWeather;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Response;
@@ -103,10 +93,17 @@ public class ChooseAreaFragment extends Fragment {
                     queryCounties();
                 } else if (currentLevel == LEVEL_COUNTY){
                     String weatherId = countyList.get(position).getWeatherId();
-                    Intent intent = new Intent(getContext(), WeatherActicity.class);
-                    intent.putExtra("weatherId", weatherId);
-                    startActivity(intent);
-                    getActivity().finish();
+                    if (getActivity() instanceof MainActivity){
+                        Intent intent = new Intent(getContext(), WeatherActivity.class);
+                        intent.putExtra("weatherId", weatherId);
+                        startActivity(intent);
+                        getActivity().finish();
+                    } else {
+                        WeatherActivity weatherActivity = (WeatherActivity) getActivity();
+                        weatherActivity.drawerLayout.closeDrawers();
+                        weatherActivity.swipeRefreshLayout.setRefreshing(true);
+                        weatherActivity.requestWeather(weatherId);
+                    }
                     return;
                 }
             }

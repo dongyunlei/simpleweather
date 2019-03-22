@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherJson = preferences.getString("weather", null);
         if (weatherJson != null){
-            Intent intent = new Intent(this, WeatherActicity.class);
+            Intent intent = new Intent(this, WeatherActivity.class);
             startActivity(intent);
             finish();
         }
